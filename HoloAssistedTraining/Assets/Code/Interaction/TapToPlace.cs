@@ -102,10 +102,6 @@ namespace HoloToolkit.Unity
                     //PhaseManager.Instance.SendMessage("OnPlaced");
                 }
             }
-            else
-            {
-                Debug.Log("TapToPlace requires spatial mapping.  Try adding SpatialMapping prefab to project.");
-            }
         }
 
         private void CreateAnchor()

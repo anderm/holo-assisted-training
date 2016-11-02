@@ -7,7 +7,7 @@ public class UIManager : Singleton<UIManager>
 {
     [Header("Progress Bar")]
     public Image progressBar;
-    public uint totalSteps = 10;
+    public uint totalSteps = 5;
     private uint _currentStep;
     public uint currentStep
     {
@@ -144,9 +144,16 @@ public class UIManager : Singleton<UIManager>
         SendMessageUpwards("OnReset");
     }
 
+    public void SetTotalSecondsAndReset(uint seconds)
+    {
+        Reset();
+        this.totalSeconds = seconds;
+    }
+
     public void OnReset()
     {
         Reset(true);
+        SendMessageUpwards("RestartScene");
     }
 
     public void OnNext(uint attempts)
@@ -167,6 +174,12 @@ public class UIManager : Singleton<UIManager>
     public void OnNextTapped(int attempts)
     {
         OnNext((uint)attempts); // convert back to uint
+    }
+
+    public float Complete()
+    {
+        stopTheClock = true;
+        return totalSeconds - elapsedTime;
     }
 
 }

@@ -12,9 +12,23 @@ public enum SceneModeType
 
 public abstract class SceneMode
 {
+    private int stepNumber;
+
     public SceneModeType SceneModeType { get; set; }
 
-    public int StepNumber { get; set; }
+    public int StepNumber
+    {
+        get
+        {
+            return this.stepNumber;
+        }
+
+        set
+        {
+            this.stepNumber = value;
+            UIManager.Instance.currentStep++;
+        }
+    }
 
     public abstract bool CheckAndAdvanceScene(out bool finished);
 

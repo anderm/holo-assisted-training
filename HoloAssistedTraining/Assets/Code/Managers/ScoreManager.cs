@@ -52,7 +52,7 @@ public class ScoreManager : Singleton<ScoreManager>
         Reset();
     }
 
-    void OnCalculateFinalScore(float timeRemaining)
+    public void OnCalculateFinalScore(float timeRemaining)
     {
         // only update score with bonus if time remaining
         if (timeRemaining > 0)
@@ -63,7 +63,7 @@ public class ScoreManager : Singleton<ScoreManager>
         Debug.Log(string.Format("Score final: {0}", score));
     }
 
-    void OnScoreAttempts(uint attempts)
+    public void OnScoreAttempts(uint attempts)
     {
         uint attemptScore = GetScore(attempts);
         score += attemptScore;

@@ -24,6 +24,7 @@ public class SnapToPosition : MonoBehaviour
     //private Material normalMat;
     private Material highGreen;
     private Material highNotReady;
+    private uint attempts = 0;
 
     public bool Animate
     {
@@ -179,6 +180,8 @@ public class SnapToPosition : MonoBehaviour
         isInteracting = false;
         this.gameObject.layer = 0;
         GetComponent<Collider>().enabled = true;
+
+        attempts++;
     }
 
     public void EndInteractionBySnapping()
@@ -193,6 +196,8 @@ public class SnapToPosition : MonoBehaviour
 
         focusedObjectReceiver.OnEndHighlight();
         mySnapPosition.GetComponent<Renderer>().enabled = false;
+
+        attempts++;
     }
 
     void DoLerp()
@@ -208,7 +213,8 @@ public class SnapToPosition : MonoBehaviour
             isSnapped = true;
             
             SceneManager.Instance.SendMessage("OnPlaced");
-           
+            ScoreManager.Instance.OnScoreAttempts(this.attempts);
+            
             if (GetComponent<CopyMeToRight>())
             {
                 GetComponent<CopyMeToRight>().StartSpawning(transform.position);

@@ -40,6 +40,8 @@ public class SceneManager : Singleton<SceneManager> {
         // Init first scene mode
         currentSceneState = sceneStates.First;
         currentSceneState.Value.InitScene();
+
+        UIManager.Instance.SetTotalSecondsAndReset(60);
     }
 	
 	// Update is called once per frame
@@ -68,6 +70,11 @@ public class SceneManager : Singleton<SceneManager> {
             {
                 currentSceneState.Value.InitScene();
             }
+            else
+            {
+                var elapsedTime = UIManager.Instance.Complete();
+                ScoreManager.Instance.OnCalculateFinalScore(elapsedTime);
+            }
         }
     }
 
@@ -79,5 +86,10 @@ public class SceneManager : Singleton<SceneManager> {
         }
 
         return null;
+    }
+
+    public void RestartScene()
+    {
+        Application.LoadLevel(Application.loadedLevel);
     }
 }
