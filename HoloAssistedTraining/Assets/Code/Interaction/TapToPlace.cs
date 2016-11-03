@@ -167,7 +167,7 @@ namespace HoloToolkit.Unity
 
                 RaycastHit hitInfo;
                 if (Physics.Raycast(headPosition, gazeDirection, out hitInfo,
-                    4.0f, SpatialMappingManager.Instance.LayerMask))
+                    2.0f, SpatialMappingManager.Instance.LayerMask))
                 {
                     // Move this object to where the raycast
                     // hit the Spatial Mapping mesh.
@@ -185,7 +185,7 @@ namespace HoloToolkit.Unity
                 }
                 else
                 {
-                    this.transform.position = headPosition + gazeDirection * 4.0f;
+                    this.transform.position = headPosition + gazeDirection * 2.0f;
                 }
             }
         }
