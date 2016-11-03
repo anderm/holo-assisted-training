@@ -7,25 +7,12 @@ public class UIManager : Singleton<UIManager>
 {
     [Header("Progress Bar")]
     public Image progressBar;
-    public uint totalSteps = 5;
-    private uint _currentStep;
-    public uint currentStep
-    {
-        get
-        {
-            return _currentStep;
-        }
-        set
-        {
-            _currentStep = value;
-            UpdateProgressBar();
-        }
-    }
 
     [Header("Clock Timer")]
     public Image clockImage;
     public Image clockImageBackground;
-    public uint totalSeconds; // the time to complete the task where bonus points will be awarded
+    [HideInInspector]
+    public uint totalSeconds; // the time to complete the task where bonus points will be awarded. NB this is set dynamically by the scene
     private float _elapsedTime;
     public float elapsedTime
     {
@@ -58,22 +45,23 @@ public class UIManager : Singleton<UIManager>
         }
     }
 
-    private void UpdateProgressBar()
+    /// <summary>
+    /// Takes a float (0.0 to 1.0) to indicate progress
+    /// </summary>
+    /// <param name="value"></param>
+    public void UpdateProgressBar(float value)
     {
-        float zeroToOne = (float)currentStep / (float)totalSteps;
+        if(value < 0)
+        {
+            value = 0;
+        }
+        if (value > 1)
+        {
+            value = 1;
+        }
+        Debug.Log(string.Format("Progress: {0}", value));
         RectTransform bar = progressBar.GetComponent<RectTransform>();
-        if (zeroToOne < 0)
-        {
-            zeroToOne = 0;
-            Debug.LogWarning("Progress less than 0.0");
-        }
-        else if (zeroToOne > 1)
-        {
-            zeroToOne = 1;
-            Debug.LogWarning("Progress greater than 1.0");
-        }
-        Debug.Log(string.Format("Progress {0} value: {1}", currentStep, zeroToOne));
-        bar.localScale = new Vector3(zeroToOne, 1, 1);
+        bar.localScale = new Vector3(value, 1, 1);
     }
 
     private void UpdateClockFillSegment()
@@ -83,14 +71,13 @@ public class UIManager : Singleton<UIManager>
         if (zeroToOne < 0)
         {
             zeroToOne = 0;
-            return; //Debug.LogWarning("Clock fill segment less than 0.0");
+            return;
         }
         else if (zeroToOne > 1)
         {
             zeroToOne = 1;
-            return; //Debug.LogWarning("Clock fill segment greater than 1.0");
-        }
-        //Debug.Log(string.Format("Time {0}/{1} value: {2}", elapsedTime, totalSeconds, zeroToOne));
+            return;
+        };
         clockImage.fillAmount = zeroToOne;
         // change background color depending on time remaining
         if (zeroToOne < 0.2)
@@ -109,29 +96,9 @@ public class UIManager : Singleton<UIManager>
 
     private void Reset(bool isRepeat = false)
     {
-        currentStep = 0;
+        UpdateProgressBar(0.0f);
         elapsedTime = 0.0f;
         stopTheClock = false;
-
-    }
-
-    private bool Next()
-    {
-        if (currentStep > totalSteps)
-        {
-            return false;
-        }
-
-        currentStep = currentStep + 1;
-        if (currentStep < totalSteps)
-        {
-            return true;
-        }
-        else if (currentStep == totalSteps)
-        {
-            stopTheClock = true;
-        }
-        return (currentStep <= totalSteps) ? true : false; // whether step should score
     }
 
     /// <summary>
@@ -156,28 +123,9 @@ public class UIManager : Singleton<UIManager>
         SendMessageUpwards("RestartScene");
     }
 
-    public void OnNext(uint attempts)
-    {
-        if (Next())
-        {
-            SendMessageUpwards("OnScoreAttempts", attempts);
-        }
-        // calculate final score when finished
-        if (currentStep == totalSteps)
-        {
-            float timeRemaining = totalSeconds - elapsedTime;
-            SendMessageUpwards("OnCalculateFinalScore", timeRemaining);
-        }
-    }
-
-    // Note: using int arg as uint didn't appear in Unity property inspector
-    public void OnNextTapped(int attempts)
-    {
-        OnNext((uint)attempts); // convert back to uint
-    }
-
     public float Complete()
     {
+        UpdateProgressBar(1.0f);
         stopTheClock = true;
         return totalSeconds - elapsedTime;
     }

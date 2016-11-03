@@ -211,9 +211,10 @@ public class SnapToPosition : MonoBehaviour
             transform.rotation = mySnapPosition.transform.rotation;
             isLerping = false;
             isSnapped = true;
-            
+
+            ScoreManager.Instance.OnScoreAttempts(this.attempts); // NB: update score first
             SceneManager.Instance.SendMessage("OnPlaced");
-            ScoreManager.Instance.OnScoreAttempts(this.attempts);
+            
             
             if (GetComponent<CopyMeToRight>())
             {

@@ -23,7 +23,7 @@ public class FocusedObjectMessageReceiver : MonoBehaviour
     {
         material = GetComponent<Renderer>().material;
 
-        if(this.material.color != null)
+        if ( this.material.color != null && this.material.HasProperty("_Color") )
         {
             originalColor = material.color;
         }
