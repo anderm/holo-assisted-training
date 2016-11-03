@@ -14,6 +14,8 @@ public abstract class SceneMode
 {
     private int stepNumber;
 
+    private int totalSteps = 4; // TODO: set using total number of pieces to place
+
     public SceneModeType SceneModeType { get; set; }
 
     public int StepNumber
@@ -26,7 +28,9 @@ public abstract class SceneMode
         set
         {
             this.stepNumber = value;
-            UIManager.Instance.currentStep++;
+            //UIManager.Instance.currentStep++;
+            float progress = (float)this.stepNumber / (float)this.totalSteps; 
+            UIManager.Instance.UpdateProgressBar(progress);
         }
     }
 

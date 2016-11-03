@@ -54,8 +54,8 @@ public class ScoreManager : Singleton<ScoreManager>
 
     public void OnCalculateFinalScore(float timeRemaining)
     {
-        // only update score with bonus if time remaining
-        if (timeRemaining > 0)
+        // only update score with bonus if time remaining (and time is gt 1 second)
+        if (timeRemaining > 1)
         {
             score = (uint)Mathf.Round(score * timeRemaining * scoring.timeBonusMultiplier);
             Debug.Log(string.Format("Score bonus time: {0} x {1}", timeRemaining, scoring.timeBonusMultiplier));
