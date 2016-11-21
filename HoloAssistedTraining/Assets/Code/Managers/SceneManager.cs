@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using HoloToolkit.Unity;
+using Assets.Code.Models;
 
 public class SceneManager : Singleton<SceneManager> {
 
@@ -20,6 +21,7 @@ public class SceneManager : Singleton<SceneManager> {
 
     private LinkedList<SceneMode> sceneStates;
     public LinkedListNode<SceneMode> currentSceneState;
+    public string UserName { get; set; }
 
     public List<GameObject> CopiedPistons;
 
@@ -29,12 +31,14 @@ public class SceneManager : Singleton<SceneManager> {
         sceneStates = new LinkedList<SceneMode>();
         CopiedPistons = new List<GameObject>();
 
+        var loginSceneMode = new LoginSceneMode();
         var placementSceneMode = new PlacementSceneMode(this.EngineObject, this.ToolsKitGameObject);
         var assistedSceneMode = new AssistedSceneMode(this.Part1Placeholder, this.Part2Placeholder, this.Part3Placeholder, this.PistonPlaceholder,
             this.Part1Object, this.Part2Object, this.Part3Object, this.PistonObject);
 
         // Add the scene to our progress list.
-        sceneStates.AddFirst(placementSceneMode);
+        sceneStates.AddFirst(loginSceneMode);
+        sceneStates.AddLast(placementSceneMode);
         sceneStates.AddLast(assistedSceneMode);
         
         // Init first scene mode
@@ -52,7 +56,7 @@ public class SceneManager : Singleton<SceneManager> {
     /// <summary>
     ///  We placed an object. Check if we can advance the scene.
     /// </summary>
-    void OnPlaced()
+    public void OnPlaced()
     {
         if (currentSceneState == null)
         {
