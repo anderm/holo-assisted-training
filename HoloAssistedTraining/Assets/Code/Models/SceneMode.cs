@@ -5,6 +5,7 @@ using HoloToolkit.Unity;
 
 public enum SceneModeType
 {
+    Login,
     Placement,
     Assisted,
     Exam
@@ -97,7 +98,7 @@ public class PlacementSceneMode : SceneMode
 
     public override void InitScene()
     {
-        TextToSpeechManager.Instance.SpeakText("Welcome to Holo Assisted Training! My name is Steve and I'm your supervisor. Please tap to place the engine you'll be working on.");
+        TextToSpeechManager.Instance.SpeakText("Welcome " + SceneManager.Instance.UserName + ". Please tap to place the engine you'll be working on.");
         this.EngineModel.SetActive(false);
         this.ToolsKitGameObject.SetActive(false);
         this.StepNumber = 0;
