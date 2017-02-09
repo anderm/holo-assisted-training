@@ -44,18 +44,17 @@ namespace Assets.Code.Models
                     {
                         if (MicrophoneManager.Instance.LastUserCommand == "yes")
                         {
-                            var user = LoginManager.Instance.TryRetrieveUser(SceneManager.Instance.UserName);
-
-                            if(user == null)
-                            {
-                                TextToSpeechManager.Instance.SpeakText("Great! We created a profile for you.");
-                            }
-                            else
-                            {
-                                TextToSpeechManager.Instance.SpeakText("Welcome back!");
+                            if (LoginManager.Instance.TryRetrieveUser(SceneManager.Instance.UserName)) {
+                                var user = LoginManager.Instance.CurrentUser;
+                                TextToSpeechManager.Instance.SpeakText("Welcome back " + user.first);
+                                finished = true;
+                                return true; 
                             }
 
-                            finished = true;
+                            TextToSpeechManager.Instance.SpeakText("Let's create a profile for you.");
+                            // TODO: Handle async events: wait until profiles are loaded, then if no record found create one, then proceed once inserted...
+
+                            finished = false;
                             return true;
                         }
                         else if (MicrophoneManager.Instance.LastUserCommand == "no")
@@ -89,7 +88,7 @@ namespace Assets.Code.Models
 
         public override void InitScene()
         {
-            TextToSpeechManager.Instance.SpeakText("Welcome to Holo Assisted Trainning. My name is Steve and I'm your supervisor. Please say register user to begin.");
+            TextToSpeechManager.Instance.SpeakText("Welcome to Holo Assisted Training. My name is Steve and I'm your supervisor. Please say register user to begin.");
 
             this.StepNumber = 0;
         }
