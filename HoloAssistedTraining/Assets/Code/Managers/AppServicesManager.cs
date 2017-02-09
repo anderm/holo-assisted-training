@@ -11,8 +11,8 @@ public class AppServicesManager : Singleton<AppServicesManager>
     /// App Services config
     /// </summary>
     public string AppUrl;
-    public string TABLE_HIGHSCORE = "HighScore";
-    public string TABLE_USER = "UserList";
+    public string HighscoreTable = "HighScore";
+    public string UserProfilesTable = "UserList";
 
     public MobileServiceClient Client;
     public MobileServiceTable<UserProfile> User;
@@ -21,8 +21,8 @@ public class AppServicesManager : Singleton<AppServicesManager>
     void Awake()
     {
         Client = new MobileServiceClient(AppUrl);
-        User = Client.GetTable<UserProfile>(TABLE_USER);
-        Highscore = Client.GetTable<HighScore>(TABLE_HIGHSCORE);
+        User = Client.GetTable<UserProfile>(UserProfilesTable);
+        Highscore = Client.GetTable<HighScore>(HighscoreTable);
     }
 
     // Use this for initialization

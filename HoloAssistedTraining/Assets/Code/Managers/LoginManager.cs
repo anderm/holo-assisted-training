@@ -39,6 +39,10 @@ namespace Assets.Code.Managers
 
         public LoginManager()
         {
+        }
+
+        void Start()
+        {
             LoadUsersAsync();
         }
 
