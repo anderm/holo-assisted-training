@@ -33,7 +33,7 @@ public class AssistedSceneMode : SceneMode
         this.SceneModeType = SceneModeType.Assisted;
     }
 
-    public override bool CheckAndAdvanceScene(out bool finished)
+    public override IEnumerator CheckAndAdvanceScene(Action<bool> callback = null)
     {
         switch (this.StepNumber)
         {
@@ -43,8 +43,8 @@ public class AssistedSceneMode : SceneMode
                     {
                         this.StepNumber++;
                         this.Part2Object.SendMessage("OnStartHighlight");
-                        finished = false;
-                        return true;
+                        callback(false);
+                        yield return true;
                     }
                     break;
                 }
@@ -55,8 +55,8 @@ public class AssistedSceneMode : SceneMode
                     {
                         this.StepNumber++;
                         this.Part3Object.SendMessage("OnStartHighlight");
-                        finished = false;
-                        return true;
+                        callback(false);
+                        yield return true;
                     }
                     break;
                 }
@@ -68,8 +68,8 @@ public class AssistedSceneMode : SceneMode
                         this.StepNumber++;
                         this.PistonObject.SendMessage("OnStartHighlight");
                         this.PistonObject.GetComponent<Rigidbody>().isKinematic = true;
-                        finished = false;
-                        return true;
+                        callback(false);
+                        yield return true;
                     }
                     break;
                 }
@@ -80,21 +80,29 @@ public class AssistedSceneMode : SceneMode
                     {
                         TextToSpeechManager.Instance.SpeakText("Great job, you assembled the engine!");
                         this.PistonObject.GetComponent<SnapToPosition>().Animate = true;
-                        finished = true;
-                        return true;
+                        
+                        var remainingTime = UIManager.Instance.Complete();
+                        ScoreManager.Instance.OnCalculateFinalScore(remainingTime);
+
+                        callback(true);
+                        yield return true;
                     }
                     break;
                 }
         }
 
-        finished = false;
-        return false;
+        callback(false);
+        yield return false;
     }
 
     public override void InitScene()
     {
         TextToSpeechManager.Instance.SpeakText("That's it, you're ready to start assembling the engine now. Please follow the visual cues.");
         this.Part1Object.SendMessage("OnStartHighlight");
+
+        // Start the timer
+        UIManager.Instance.SetTotalSecondsAndReset(60);
+
         this.StepNumber = 0;
     }
 

@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using HoloToolkit.Unity;
+using Assets.Code.Models;
+using Assets.Code.Managers;
 
 public class ScoreManager : Singleton<ScoreManager>
 {
@@ -52,15 +54,21 @@ public class ScoreManager : Singleton<ScoreManager>
         Reset();
     }
 
-    public void OnCalculateFinalScore(float timeRemaining)
+    public void OnCalculateFinalScore(float remainingTime)
     {
         // only update score with bonus if time remaining (and time is gt 1 second)
-        if (timeRemaining > 1)
+        if (remainingTime > 1)
         {
-            score = (uint)Mathf.Round(score * timeRemaining * scoring.timeBonusMultiplier);
-            Debug.Log(string.Format("Score bonus time: {0} x {1}", timeRemaining, scoring.timeBonusMultiplier));
+            score = (uint)Mathf.Round(score * remainingTime * scoring.timeBonusMultiplier);
+            Debug.Log(string.Format("Score bonus time: {0} x {1}", remainingTime, scoring.timeBonusMultiplier));
         }
-        Debug.Log(string.Format("Score final: {0}", score));
+
+        var highScore = new HighScore();
+        highScore.score = (int)score;
+        highScore.timeTook = (int)UIManager.Instance.elapsedTime;
+        highScore.userId = LoginManager.Instance.CurrentUser.id;
+
+        StartCoroutine(AppServicesManager.Instance.Highscore.Insert<HighScore>(highScore));
     }
 
     public void OnScoreAttempts(uint attempts)

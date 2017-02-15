@@ -19,21 +19,22 @@ namespace Assets.Code.Managers
         public static event FoundUser OnFoundUser;
 
         public delegate void SavedUser(bool success, UserProfile userProfile);
-        public static event SavedUser OnSavedUser;
+        public static Action<bool, UserProfile> OnSavedUser;
 
         public delegate void ChangedUser(UserProfile userProfile);
         public static event ChangedUser OnChangedUser;
 
         private UserProfile[] UserProfiles;
+        private UserProfile currentUser;
         public UserProfile CurrentUser
         {
-            get {
-                return CurrentUser;
+            get
+            {
+                return currentUser;
             }
             set
             {
-                CurrentUser = value;
-                OnChangedUser(CurrentUser);
+                currentUser = value;
             }
         }
 
@@ -56,22 +57,17 @@ namespace Assets.Code.Managers
             if (response.IsError)
             {
                 TextToSpeechManager.Instance.SpeakText("Something went wrong getting the user profiles. Where's the wifi gone when you need it?"); // TODO: move speech into scene manager
-                OnLoadedUsers(false, null);
                 return;
             }
-            UserProfiles = response.Data;
-            OnLoadedUsers(true, UserProfiles);
-        }
+            Debug.Log(response.StatusCode);
+            Debug.Log(response.ErrorMessage + response.Content);
 
-        public bool TryRetrieveUser(string fullName)
-        {
-            string[] name = fullName.Split(' ');
-            if(name.Length == 2)
+            if(response.Data == null)
             {
-                return TryRetrieveUser(name[0], name[1]);
+                Debug.Log("Data is null :(");
             }
-            Debug.LogError("Expected a first and last name.");
-            return false;
+
+            UserProfiles = response.Data;
         }
 
         public bool TryRetrieveUser(string firstName, string lastName)
@@ -91,9 +87,6 @@ namespace Assets.Code.Managers
                     return true;
                 }
             }
-
-            // record not found, create new user profile
-            //SaveUserAsync(firstName, lastName);
 
             return false;
         }
@@ -135,16 +128,19 @@ namespace Assets.Code.Managers
             OnFoundUser(true, CurrentUser);
         }
 
-        public void SaveUserAsync(string firstName, string lastName)
+        public void SaveUserAsync(string firstName, string lastName, Action<bool, UserProfile> callback = null)
         {
-            if (!ValidValues(firstName, lastName)) return;
-
-            TextToSpeechManager.Instance.SpeakText("Hey " + firstName + ", you must be new around here. Lets create a new profile for you."); // TODO: move speech into scene manager
+            if (!ValidValues(firstName, lastName))
+            {
+                callback(false, null);
+                return;
+            }
 
             var user = new UserProfile();
             user.first = firstName;
             user.last = lastName;
 
+            OnSavedUser = callback;
             StartCoroutine( AppServicesManager.Instance.User.Insert<UserProfile>(user, SaveUserComplete) );
         }
 
@@ -152,7 +148,6 @@ namespace Assets.Code.Managers
         {
             if (response.IsError)
             {
-                TextToSpeechManager.Instance.SpeakText("Well this is embrassing, just can't seem to save your user profile right now..."); // TODO: move speech into scene manager
                 OnSavedUser(false, CurrentUser);
                 return;
             }

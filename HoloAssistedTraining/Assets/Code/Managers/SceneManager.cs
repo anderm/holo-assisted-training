@@ -21,7 +21,8 @@ public class SceneManager : Singleton<SceneManager> {
 
     private LinkedList<SceneMode> sceneStates;
     public LinkedListNode<SceneMode> currentSceneState;
-    public string UserName { get; set; }
+    public string FirstName { get; set; }
+    public string LastName { get; set; }
 
     public List<GameObject> CopiedPistons;
 
@@ -44,14 +45,25 @@ public class SceneManager : Singleton<SceneManager> {
         // Init first scene mode
         currentSceneState = sceneStates.First;
         currentSceneState.Value.InitScene();
-
-        UIManager.Instance.SetTotalSecondsAndReset(60);
     }
 	
 	// Update is called once per frame
 	void Update () {
-	
-	}
+
+    }
+
+    private void progressScene(bool progress)
+    {
+        if(progress)
+        {
+            currentSceneState = currentSceneState.Next;
+
+            if (currentSceneState != null)
+            {
+                currentSceneState.Value.InitScene();
+            }
+        }
+    }
 
     /// <summary>
     ///  We placed an object. Check if we can advance the scene.
@@ -63,23 +75,7 @@ public class SceneManager : Singleton<SceneManager> {
             return;
         }
 
-        var finished = false;
-        var advanced = currentSceneState.Value.CheckAndAdvanceScene(out finished);
-
-        if (advanced && finished)
-        {
-            currentSceneState = currentSceneState.Next;
-
-            if (currentSceneState != null)
-            {
-                currentSceneState.Value.InitScene();
-            }
-            else
-            {
-                var elapsedTime = UIManager.Instance.Complete();
-                ScoreManager.Instance.OnCalculateFinalScore(elapsedTime);
-            }
-        }
+        StartCoroutine(currentSceneState.Value.CheckAndAdvanceScene(this.progressScene));
     }
 
     public GameObject CurrentInteractiveObject()

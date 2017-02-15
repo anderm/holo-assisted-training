@@ -35,7 +35,7 @@ public abstract class SceneMode
         }
     }
 
-    public abstract bool CheckAndAdvanceScene(out bool finished);
+    public abstract IEnumerator CheckAndAdvanceScene(Action<bool> callback = null);
 
     public abstract void InitScene();
 
@@ -55,7 +55,7 @@ public class PlacementSceneMode : SceneMode
         this.SceneModeType = SceneModeType.Placement;
     }
 
-    public override bool CheckAndAdvanceScene(out bool finished)
+    public override IEnumerator CheckAndAdvanceScene(Action<bool> callback = null)
     {
         switch (this.StepNumber)
         {
@@ -66,39 +66,39 @@ public class PlacementSceneMode : SceneMode
                 this.EngineModel.SendMessage("OnSelect");
                 
                 this.StepNumber++;
+                yield return true;
 
-                finished = false;
-                return true;
+                break;
             case 1:
                 TextToSpeechManager.Instance.SpeakText("Good job. Now tap anywhere to pick up your toolbox.");
                 this.StepNumber++;
-                finished = false;
-                return true;
+
+                yield return true;
+                break;
 
             case 2:
                 TextToSpeechManager.Instance.SpeakText("Nice. You're ready to place your toolbox now. Tap again wherever you'd like.");
                 this.StepNumber++;
+
                 this.ToolsKitGameObject.SetActive(true);
                 this.ToolsKitGameObject.SendMessage("OnSelect");
-                finished = false;
-                return true;
+
+                yield return true;
+                break;
             case 3:
-           
                 this.StepNumber++;
-                //fix toolkit in place here
-                //this.ToolsKitGameObject.SendMessage("OnSelect");
-                 this.ToolsKitGameObject.GetComponent<BoxCollider>().enabled = false;
-                finished = true;
-                return true;
+                this.ToolsKitGameObject.GetComponent<BoxCollider>().enabled = false;
+                callback(true);
+                yield return true;
+                break;
         }
 
-        finished = false;
-        return false;
+        yield return false;
     }
 
     public override void InitScene()
     {
-        TextToSpeechManager.Instance.SpeakText("Welcome " + SceneManager.Instance.UserName + ". Please tap to place the engine you'll be working on.");
+        TextToSpeechManager.Instance.SpeakText("Welcome " + SceneManager.Instance.FirstName + ". Please tap to place the engine you'll be working on.");
         this.EngineModel.SetActive(false);
         this.ToolsKitGameObject.SetActive(false);
         this.StepNumber = 0;
