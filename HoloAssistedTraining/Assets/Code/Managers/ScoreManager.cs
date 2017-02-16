@@ -54,7 +54,7 @@ public class ScoreManager : Singleton<ScoreManager>
         Reset();
     }
 
-    public void OnCalculateFinalScore(float remainingTime)
+    public uint OnCalculateFinalScore(float remainingTime)
     {
         // only update score with bonus if time remaining (and time is gt 1 second)
         if (remainingTime > 1)
@@ -69,6 +69,7 @@ public class ScoreManager : Singleton<ScoreManager>
         highScore.userId = LoginManager.Instance.CurrentUser.id;
 
         StartCoroutine(AppServicesManager.Instance.Highscore.Insert<HighScore>(highScore));
+        return score;
     }
 
     public void OnScoreAttempts(uint attempts)

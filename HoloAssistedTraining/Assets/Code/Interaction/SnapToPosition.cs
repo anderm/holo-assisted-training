@@ -213,7 +213,7 @@ public class SnapToPosition : MonoBehaviour
             isSnapped = true;
 
             ScoreManager.Instance.OnScoreAttempts(this.attempts); // NB: update score first
-            SceneManager.Instance.SendMessage("OnPlaced");
+            SceneManager.Instance.SendMessage("Advance");
             
             
             if (GetComponent<CopyMeToRight>())

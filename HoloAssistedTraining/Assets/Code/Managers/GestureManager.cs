@@ -156,7 +156,7 @@ namespace HoloToolkit.Unity
         {
             if (SceneManager.Instance.currentSceneState.Value.SceneModeType == SceneModeType.Placement)
             {
-                SceneManager.Instance.SendMessage("OnPlaced", SendMessageOptions.DontRequireReceiver);
+                SceneManager.Instance.SendMessage("Advance", SendMessageOptions.DontRequireReceiver);
             }
 
             if (SceneManager.Instance.CurrentInteractiveObject() != null)

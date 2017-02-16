@@ -17,9 +17,6 @@ namespace Assets.Code.Audio
     {
         private DictationRecognizer dictationRecognizer;
 
-        // Use this string to cache the text currently displayed in the text box.
-        private StringBuilder textSoFar;
-
         // Using an empty string specifies the default microphone. 
         private static string deviceName = string.Empty;
         private int samplingRate;
@@ -32,14 +29,8 @@ namespace Assets.Code.Audio
 
         void Awake()
         {
-            /* TODO: DEVELOPER CODING EXERCISE 3.a */
-
             // 3.a: Create a new DictationRecognizer and assign it to dictationRecognizer variable.
             dictationRecognizer = new DictationRecognizer();
-
-            // 3.a: Register for dictationRecognizer.DictationHypothesis and implement DictationHypothesis below
-            // This event is fired while the user is talking. As the recognizer listens, it provides text of what it's heard so far.
-            dictationRecognizer.DictationHypothesis += DictationRecognizer_DictationHypothesis;
 
             // 3.a: Register for dictationRecognizer.DictationResult and implement DictationResult below
             // This event is fired after the user pauses, typically at the end of a sentence. The full recognized string is returned here.
@@ -56,9 +47,6 @@ namespace Assets.Code.Audio
             // Query the maximum frequency of the default microphone. Use 'unused' to ignore the minimum frequency.
             int unused;
             Microphone.GetDeviceCaps(deviceName, out unused, out samplingRate);
-
-            // Use this string to cache the text currently displayed in the text box.
-            textSoFar = new StringBuilder();
 
             // Use this to reset the UI once the Microphone is done recording after it was started.
             hasRecordingStarted = false;
@@ -86,16 +74,11 @@ namespace Assets.Code.Audio
             PhraseRecognitionSystem.Shutdown();
 
             this.StopRecording();
-
-            textSoFar = new StringBuilder();
             this.LastUserCommand = string.Empty;
 
             // 3.a: Start dictationRecognizer
             dictationRecognizer.Start();
-
-            // 3.a Uncomment this line
-            // TextToSpeechManager.Instance.SpeakText("Dictation is starting. What is your name?");
-
+            
             // Set the flag that we've started recording.
             hasRecordingStarted = true;
         }
@@ -109,13 +92,8 @@ namespace Assets.Code.Audio
             // 3.a Shutdown the PhraseRecognitionSystem. This controls the KeywordRecognizers
             PhraseRecognitionSystem.Shutdown();
 
-            textSoFar = new StringBuilder();
-
             // 3.a: Start dictationRecognizer
             dictationRecognizer.Start();
-
-            // 3.a Uncomment this line
- //           TextToSpeechManager.Instance.SpeakText("Dictation is starting. What is your name?");
             
             // Set the flag that we've started recording.
             hasRecordingStarted = true;
@@ -139,17 +117,6 @@ namespace Assets.Code.Audio
         }
 
         /// <summary>
-        /// This event is fired while the user is talking. As the recognizer listens, it provides text of what it's heard so far.
-        /// </summary>
-        /// <param name="text">The currently hypothesized recognition.</param>
-        private void DictationRecognizer_DictationHypothesis(string text)
-        {
-            // 3.a: Set DictationDisplay text to be textSoFar and new hypothesized text
-            // We don't want to append to textSoFar yet, because the hypothesis may have changed on the next event
-            // DictationDisplay.text = textSoFar.ToString() + " " + text + "...";
-        }
-
-        /// <summary>
         /// This event is fired after the user pauses, typically at the end of a sentence. The full recognized string is returned here.
         /// </summary>
         /// <param name="text">The text that was heard by the recognizer.</param>
@@ -159,10 +126,7 @@ namespace Assets.Code.Audio
             LastUserCommand = text;
 
             //SceneManager.Instance.UserName = textSoFar.ToString();
-            SceneManager.Instance.OnPlaced();
-
-            // 3.a: Set DictationDisplay text to be textSoFar
-            //TextToSpeechManager.Instance.SpeakText("Hi " + textSoFar.ToString() + " . Welcome to Holo Assisted Training.");
+            SceneManager.Instance.Advance();
         }
 
         /// <summary>
@@ -172,19 +136,7 @@ namespace Assets.Code.Audio
         /// <param name="cause">An enumerated reason for the session completing.</param>
         private void DictationRecognizer_DictationComplete(DictationCompletionCause cause)
         {
-            // If Timeout occurs, the user has been silent for too long.
-            // With dictation, the default timeout after a recognition is 20 seconds.
-            // The default timeout with initial silence is 5 seconds.
-            //if (cause == DictationCompletionCause.TimeoutExceeded)
-            //{
-            //    Microphone.End(deviceName);
-
-            //    DictationDisplay.text = "Dictation has timed out. Please press the record button again.";
-            //    SendMessage("ResetAfterTimeout");
-            //}
-
             PhraseRecognitionSystem.Restart();
-
         }
 
         /// <summary>
@@ -194,7 +146,6 @@ namespace Assets.Code.Audio
         /// <param name="hresult">The int representation of the hresult.</param>
         private void DictationRecognizer_DictationError(string error, int hresult)
         {
-            // 3.a: Set DictationDisplay text to be the error string
             TextToSpeechManager.Instance.SpeakText(error + "\nHRESULT: " + hresult);
         }
     }

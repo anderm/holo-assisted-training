@@ -11,18 +11,14 @@ namespace Assets.Code.Managers
 {
     public class LoginManager : Singleton<LoginManager>
     {
-        // async request delegates
-        public delegate void LoadedUsers(bool success, UserProfile[] UserProfiles);
-        public static event LoadedUsers OnLoadedUsers;
+        // callbacks for async methods, where is await when you need it
+        private Action<bool, UserProfile[]> OnLoadedUsers;
+        private Action<bool, UserProfile> OnFoundUser;
+        private Action<bool, UserProfile> OnSavedUser;
+        private Action<bool, UserProfile> OnChangedUser;
 
-        public delegate void FoundUser(bool success, UserProfile userProfile);
-        public static event FoundUser OnFoundUser;
-
-        public delegate void SavedUser(bool success, UserProfile userProfile);
-        public static Action<bool, UserProfile> OnSavedUser;
-
-        public delegate void ChangedUser(UserProfile userProfile);
-        public static event ChangedUser OnChangedUser;
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
 
         private UserProfile[] UserProfiles;
         private UserProfile currentUser;
@@ -44,11 +40,11 @@ namespace Assets.Code.Managers
 
         void Start()
         {
-            LoadUsersAsync();
         }
 
-        public void LoadUsersAsync()
+        public void LoadUsersAsync(Action<bool, UserProfile[]> callback = null)
         {
+            OnLoadedUsers = callback;
             StartCoroutine(AppServicesManager.Instance.User.Read<UserProfile>(LoadUsersComplete));
         }
 
@@ -56,32 +52,31 @@ namespace Assets.Code.Managers
         {
             if (response.IsError)
             {
-                TextToSpeechManager.Instance.SpeakText("Something went wrong getting the user profiles. Where's the wifi gone when you need it?"); // TODO: move speech into scene manager
-                return;
-            }
-            Debug.Log(response.StatusCode);
-            Debug.Log(response.ErrorMessage + response.Content);
+                if (OnLoadedUsers != null)
+                {
+                    OnLoadedUsers(false, null);
+                }
 
-            if(response.Data == null)
-            {
-                Debug.Log("Data is null :(");
+                return;
             }
 
             UserProfiles = response.Data;
+            if (OnLoadedUsers != null)
+            {
+                OnLoadedUsers(true, UserProfiles);
+            }
         }
 
         public bool TryRetrieveUser(string firstName, string lastName)
         {
-            if (!ValidValues(firstName, lastName)) return false;
-
-            if (UserProfiles == null || UserProfiles.Length == 0)
+            if (UserProfiles == null || UserProfiles.Length == 0 || !ValidValues(firstName, lastName))
             {
                 return false;
             }
 
             foreach (UserProfile user in UserProfiles)
             {
-                if(user.first.Equals(firstName, StringComparison.OrdinalIgnoreCase) && user.last.Equals(lastName, StringComparison.OrdinalIgnoreCase))
+                if (user.first.Equals(firstName, StringComparison.OrdinalIgnoreCase) && user.last.Equals(lastName, StringComparison.OrdinalIgnoreCase))
                 {
                     CurrentUser = user;
                     return true;
@@ -91,44 +86,47 @@ namespace Assets.Code.Managers
             return false;
         }
 
-        public void TryFindUserAsync(string firstName, string lastName)
+        public void TryFindUserAsync(string firstName, string lastName, Action<bool, UserProfile> callback)
         {
-            if (!ValidValues(firstName, lastName)) return;
+            CurrentUser = new UserProfile() { first = firstName, last = lastName };
+
+            if (!ValidValues(firstName, lastName))
+            {
+                callback(false, CurrentUser);
+                return;
+            }
 
             // Try to find from loaded profiles first (limited to 50 users by default)
             if (TryRetrieveUser(firstName, lastName))
             {
-                OnFoundUser(true, CurrentUser);
+                callback(true, CurrentUser);
                 return;
             }
 
             string filter = string.Format("first eq '{0}' and last eq '{1}'", firstName, lastName);
             CustomQuery query = new CustomQuery(filter);
             StartCoroutine(AppServicesManager.Instance.User.Query<UserProfile>(query, TryFindUserComplete));
+            OnFoundUser = callback;
         }
 
         private void TryFindUserComplete(IRestResponse<UserProfile[]> response)
         {
-            if (response.IsError)
+            if (response.IsError || response.Data.Length == 0)
             {
-                OnFoundUser(false, null);
+                OnFoundUser(false, CurrentUser);
                 return;
             }
-            if (response.Data.Length == 0)
-            {
-                // user not found
-                OnFoundUser(false, null);
-                return;
-            }
+
             if (response.Data.Length != 1)
             {
                 Debug.LogWarning("Found multiple profiles, did you clone yourself?"); // TODO: handle persons which have duplicate names
             }
+
             CurrentUser = response.Data[0];
             OnFoundUser(true, CurrentUser);
         }
 
-        public void SaveUserAsync(string firstName, string lastName, Action<bool, UserProfile> callback = null)
+        public void SaveUserAsync(string firstName, string lastName, Action<bool, UserProfile> callback)
         {
             if (!ValidValues(firstName, lastName))
             {
@@ -141,7 +139,7 @@ namespace Assets.Code.Managers
             user.last = lastName;
 
             OnSavedUser = callback;
-            StartCoroutine( AppServicesManager.Instance.User.Insert<UserProfile>(user, SaveUserComplete) );
+            StartCoroutine(AppServicesManager.Instance.User.Insert<UserProfile>(user, SaveUserComplete));
         }
 
         private void SaveUserComplete(IRestResponse<UserProfile> response)
@@ -151,19 +149,14 @@ namespace Assets.Code.Managers
                 OnSavedUser(false, CurrentUser);
                 return;
             }
+
             CurrentUser = response.Data;
             OnSavedUser(true, CurrentUser);
         }
 
         private bool ValidValues(string firstName, string lastName)
         {
-            if (string.IsNullOrEmpty(firstName) || string.IsNullOrEmpty(lastName))
-            {
-                Debug.LogError("First and last name are required.");
-                return false;
-            }
-            return true;
+            return !string.IsNullOrEmpty(firstName) && !string.IsNullOrEmpty(lastName);
         }
-
     }
 }

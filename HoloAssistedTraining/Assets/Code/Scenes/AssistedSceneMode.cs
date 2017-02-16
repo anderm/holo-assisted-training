@@ -16,7 +16,7 @@ public class AssistedSceneMode : SceneMode
     public GameObject PistonObject { get; set; }
 
     public AssistedSceneMode(GameObject part1Placeholder, GameObject part2Placeholder, GameObject part3Placeholder, GameObject pistonPlaceholder,
-        GameObject part1Object, GameObject part2Object, GameObject part3Object, GameObject pistonObject )
+        GameObject part1Object, GameObject part2Object, GameObject part3Object, GameObject pistonObject, Action<bool> sceneFinishedCallback) : base(sceneFinishedCallback)
     {
         this.Part1Object = part1Object;
         this.Part1Placeholder = part1Placeholder;
@@ -33,7 +33,7 @@ public class AssistedSceneMode : SceneMode
         this.SceneModeType = SceneModeType.Assisted;
     }
 
-    public override IEnumerator CheckAndAdvanceScene(Action<bool> callback = null)
+    public override IEnumerator CheckAndAdvanceScene()
     {
         switch (this.StepNumber)
         {
@@ -43,7 +43,6 @@ public class AssistedSceneMode : SceneMode
                     {
                         this.StepNumber++;
                         this.Part2Object.SendMessage("OnStartHighlight");
-                        callback(false);
                         yield return true;
                     }
                     break;
@@ -55,7 +54,6 @@ public class AssistedSceneMode : SceneMode
                     {
                         this.StepNumber++;
                         this.Part3Object.SendMessage("OnStartHighlight");
-                        callback(false);
                         yield return true;
                     }
                     break;
@@ -68,7 +66,6 @@ public class AssistedSceneMode : SceneMode
                         this.StepNumber++;
                         this.PistonObject.SendMessage("OnStartHighlight");
                         this.PistonObject.GetComponent<Rigidbody>().isKinematic = true;
-                        callback(false);
                         yield return true;
                     }
                     break;
@@ -78,20 +75,19 @@ public class AssistedSceneMode : SceneMode
                 {
                     if (this.PistonObject.GetComponent<SnapToPosition>().isSnapped)
                     {
-                        TextToSpeechManager.Instance.SpeakText("Great job, you assembled the engine!");
                         this.PistonObject.GetComponent<SnapToPosition>().Animate = true;
                         
                         var remainingTime = UIManager.Instance.Complete();
-                        ScoreManager.Instance.OnCalculateFinalScore(remainingTime);
+                        var finalScore = ScoreManager.Instance.OnCalculateFinalScore(remainingTime);
+                        TextToSpeechManager.Instance.SpeakText("Great job, you assembled the engine! Your final score is " + finalScore +". Press reset button to try again.");
 
-                        callback(true);
+                        this.SceneFinishedCallback(true);
                         yield return true;
                     }
                     break;
                 }
         }
 
-        callback(false);
         yield return false;
     }
 

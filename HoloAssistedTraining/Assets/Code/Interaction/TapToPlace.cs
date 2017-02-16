@@ -99,7 +99,6 @@ namespace HoloToolkit.Unity
                     CreateAnchor();
 
                     this.Placed = true;
-                    //PhaseManager.Instance.SendMessage("OnPlaced");
                 }
             }
         }

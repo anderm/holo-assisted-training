@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using HoloToolkit.Unity;
-using Assets.Code.Models;
+using Assets.Code.Scenes;
 
 public class SceneManager : Singleton<SceneManager> {
 
@@ -21,9 +21,6 @@ public class SceneManager : Singleton<SceneManager> {
 
     private LinkedList<SceneMode> sceneStates;
     public LinkedListNode<SceneMode> currentSceneState;
-    public string FirstName { get; set; }
-    public string LastName { get; set; }
-
     public List<GameObject> CopiedPistons;
 
     // Use this for initialization
@@ -32,10 +29,10 @@ public class SceneManager : Singleton<SceneManager> {
         sceneStates = new LinkedList<SceneMode>();
         CopiedPistons = new List<GameObject>();
 
-        var loginSceneMode = new LoginSceneMode();
-        var placementSceneMode = new PlacementSceneMode(this.EngineObject, this.ToolsKitGameObject);
+        var loginSceneMode = new LoginSceneMode(finishedSceneCallback);
+        var placementSceneMode = new PlacementSceneMode(this.EngineObject, this.ToolsKitGameObject, finishedSceneCallback);
         var assistedSceneMode = new AssistedSceneMode(this.Part1Placeholder, this.Part2Placeholder, this.Part3Placeholder, this.PistonPlaceholder,
-            this.Part1Object, this.Part2Object, this.Part3Object, this.PistonObject);
+            this.Part1Object, this.Part2Object, this.Part3Object, this.PistonObject, finishedSceneCallback);
 
         // Add the scene to our progress list.
         sceneStates.AddFirst(loginSceneMode);
@@ -52,7 +49,7 @@ public class SceneManager : Singleton<SceneManager> {
 
     }
 
-    private void progressScene(bool progress)
+    private void finishedSceneCallback(bool progress)
     {
         if(progress)
         {
@@ -66,16 +63,16 @@ public class SceneManager : Singleton<SceneManager> {
     }
 
     /// <summary>
-    ///  We placed an object. Check if we can advance the scene.
+    ///  Check if we can advance the scene.
     /// </summary>
-    public void OnPlaced()
+    public void Advance()
     {
         if (currentSceneState == null)
         {
             return;
         }
 
-        StartCoroutine(currentSceneState.Value.CheckAndAdvanceScene(this.progressScene));
+        StartCoroutine(currentSceneState.Value.CheckAndAdvanceScene());
     }
 
     public GameObject CurrentInteractiveObject()
